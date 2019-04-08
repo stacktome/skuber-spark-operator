@@ -8,148 +8,171 @@ import skuber.sparkoperator._
 
 package object format {
 
-  implicit lazy val formatSparkHistoryServerSharedVolume: Format[SparkHistoryServer.SharedVolume] = (
-    (JsPath \ "size").formatWithDefault("0.3Gi") and
-      (JsPath \ "mountPath").formatWithDefault("/history/spark-events") and
-      (JsPath \ "matchLabels").formatMaybeEmptyMap[String]
-    )(SparkHistoryServer.SharedVolume.apply _, unlift(SparkHistoryServer.SharedVolume.unapply))
-
-  implicit lazy val formatSparkHistoryServerKerberos: Format[SparkHistoryServer.Kerberos] = (
-    (JsPath \ "enabled").formatWithDefault(true) and
-      (JsPath \ "principal").formatMaybeEmptyString() and
-      (JsPath \ "keytab").formatMaybeEmptyString()
-    )(SparkHistoryServer.Kerberos.apply _, unlift(SparkHistoryServer.Kerberos.unapply))
-
-  implicit lazy val formatSparkHistoryServerCleaner: Format[SparkHistoryServer.Cleaner] = (
-    (JsPath \ "enabled").formatWithDefault(true) and
-      (JsPath \ "interval").formatWithDefault(1) and
-      (JsPath \ "maxAge").formatWithDefault(7)
-    )(SparkHistoryServer.Cleaner.apply _, unlift(SparkHistoryServer.Cleaner.unapply))
-
-  implicit lazy val formatSparkHistoryServerSpec: Format[SparkHistoryServer.Spec] = (
-    (JsPath \ "type").formatEnum(SparkHistoryServer.Type, Some(SparkHistoryServer.Type.sharedVolume)) and
-      (JsPath \ "sharedVolume").formatNullable[SparkHistoryServer.SharedVolume] and
-      (JsPath \ "sparkConfiguration").formatMaybeEmptyList[EnvVar] and
-      (JsPath \ "remoteURI").formatMaybeEmptyString() and
-      (JsPath \ "expose").formatWithDefault(true) and
-      (JsPath \ "host").formatMaybeEmptyString() and
-      (JsPath \ "customImage").formatMaybeEmptyString() and
-      (JsPath \ "logDirectory").formatWithDefault("file:/history/spark-events") and
-      (JsPath \ "updateInterval").formatWithDefault("10") and
-      (JsPath \ "internalPort").formatWithDefault("18080") and
-      (JsPath \ "retainedApplications").formatWithDefault("50") and
-      (JsPath \ "maxApplications").formatWithDefault("999999") and
-      (JsPath \ "provider").formatWithDefault("org.apache.spark.deploy.history.FsHistoryProvider") and
-      (JsPath \ "kerberos").formatNullable[SparkHistoryServer.Kerberos] and
-      (JsPath \ "cleaner").formatNullable[SparkHistoryServer.Cleaner] and
-      (JsPath \ "endEventReparseChunkSize").formatWithDefault(1) and
-      (JsPath \ "inProgressOptimization").formatWithDefault(true) and
-      (JsPath \ "numReplayThreads").formatMaybeEmptyString() and
-      (JsPath \ "maxDiskUsage").formatWithDefault(10) and
-      (JsPath \ "persistentPath").formatMaybeEmptyString()
-    )(SparkHistoryServer.Spec.apply _, unlift(SparkHistoryServer.Spec.unapply))
-
-  implicit lazy val formatSparkHistoryServer: Format[SparkHistoryServer] = (
-    objFormat and
-      (JsPath \ "spec").formatNullable[SparkHistoryServer.Spec]
-    )(SparkHistoryServer.apply _, unlift(SparkHistoryServer.unapply))
-
-  implicit val formatSparkHistoryServerList: Format[ListResource[SparkHistoryServer]] = ListResourceFormat[SparkHistoryServer]
-
-  implicit lazy val formatSparkClusterRCSpec: Format[SparkCluster.RCSpec] = (
-    (JsPath \ "instances").formatWithDefault(1) and
-      (JsPath \ "memory").formatMaybeEmptyString() and
-      (JsPath \ "cpu").formatMaybeEmptyString() and
-      (JsPath \ "labels").formatMaybeEmptyMap[String] and
-      (JsPath \ "command").formatMaybeEmptyList[String] and
-      (JsPath \ "commandArgs").formatMaybeEmptyList[String]
-    )(SparkCluster.RCSpec.apply _, unlift(SparkCluster.RCSpec.unapply))
-
-  implicit lazy val formatSparkClusterHistoryServerSharedVolume: Format[SparkCluster.HistoryServerSharedVolume] = (
-    (JsPath \ "size").formatWithDefault("0.3Gi") and
-      (JsPath \ "mountPath").formatWithDefault("/history/spark-events") and
-      (JsPath \ "matchLabels").formatMaybeEmptyMap[String]
-    )(SparkCluster.HistoryServerSharedVolume.apply _, unlift(SparkCluster.HistoryServerSharedVolume.unapply))
-
-  implicit lazy val formatSparkClusterHistoryServer: Format[SparkCluster.HistoryServer] = (
-    (JsPath \ "name").formatMaybeEmptyString() and
-      (JsPath \ "type").formatEnum(SparkCluster.HistoryServerType, Some(SparkCluster.HistoryServerType.sharedVolume)) and
-      (JsPath \ "sharedVolume").formatNullable[SparkCluster.HistoryServerSharedVolume] and
-      (JsPath \ "remoteURI").formatMaybeEmptyString()
-    )(SparkCluster.HistoryServer.apply _, unlift(SparkCluster.HistoryServer.unapply))
-
-  implicit lazy val formatSparkClusterDownloadData: Format[SparkCluster.DownloadData] = (
-    (JsPath \ "url").format[String] and
-      (JsPath \ "to").format[String] and
-      (JsPath \ "required").formatWithDefault(false) and
-      (JsPath \ "downloadTimeout").formatNullable[Int]
-    )(SparkCluster.DownloadData.apply _, unlift(SparkCluster.DownloadData.unapply))
-
-  implicit lazy val formatSparkClusterSpec: Format[SparkCluster.Spec] = (
-    (JsPath \ "master").formatNullable[SparkCluster.RCSpec] and
-      (JsPath \ "worker").formatNullable[SparkCluster.RCSpec] and
-      (JsPath \ "customImage").formatMaybeEmptyString() and
-      (JsPath \ "metrics").formatWithDefault(false) and
-      (JsPath \ "sparkWebUI").formatWithDefault(true) and
-      (JsPath \ "sparkConfigurationMap").formatMaybeEmptyString() and
-      (JsPath \ "env").formatMaybeEmptyList[EnvVar] and
-      (JsPath \ "sparkConfiguration").formatMaybeEmptyList[EnvVar] and
-      (JsPath \ "historyServer").formatNullable[SparkCluster.HistoryServer] and
-      (JsPath \ "downloadData").formatMaybeEmptyList[SparkCluster.DownloadData]
-    )(SparkCluster.Spec.apply _, unlift(SparkCluster.Spec.unapply))
-
-  implicit lazy val formatSparkCluster: Format[SparkCluster] = (
-    objFormat and
-      (JsPath \ "spec").formatNullable[SparkCluster.Spec]
-    )(SparkCluster.apply _, unlift(SparkCluster.unapply))
-
-  implicit val formatSparkClusterList: Format[ListResource[SparkCluster]] = ListResourceFormat[SparkCluster]
-
   implicit lazy val formatSparkApplicationDeps: Format[SparkApplication.Deps] = (
     (JsPath \ "jars").formatMaybeEmptyList[String] and
       (JsPath \ "files").formatMaybeEmptyList[String] and
       (JsPath \ "pyFiles").formatMaybeEmptyList[String] and
       (JsPath \ "jarsDownloadDir").formatMaybeEmptyList[String] and
       (JsPath \ "filesDownloadDir").formatMaybeEmptyList[String] and
-      (JsPath \ "downloadTimeout").formatWithDefault(60) and
-      (JsPath \ "maxSimultaneousDownloads").formatWithDefault(5)
+      (JsPath \ "downloadTimeout").formatNullable[Int] and
+      (JsPath \ "maxSimultaneousDownloads").formatNullable[Int]
     )(SparkApplication.Deps.apply _, unlift(SparkApplication.Deps.unapply))
 
-  implicit lazy val formatSparkApplicationDriverSpec: Format[SparkApplication.DriverSpec] = (
-    (JsPath \ "memory").formatWithDefault("512m") and
-      (JsPath \ "memoryOverhead").formatMaybeEmptyString() and
-      (JsPath \ "labels").formatMaybeEmptyMap[String] and
-      (JsPath \ "cores").formatWithDefault("1") and
-      (JsPath \ "coreLimit").formatWithDefault("1000m") and
-      (JsPath \ "serviceAccount").formatWithDefault("spark-operator")
-    )(SparkApplication.DriverSpec.apply _, unlift(SparkApplication.DriverSpec.unapply))
+  implicit lazy val formatNamePath: Format[SparkApplication.NamePath] = (
+    (JsPath \ "name").format[String] and
+      (JsPath \ "path").format[String]
+    )(SparkApplication.NamePath.apply _, unlift(SparkApplication.NamePath.unapply))
+
+  implicit lazy val formatNameKey: Format[SparkApplication.NameKey] = (
+    (JsPath \ "name").format[String] and
+      (JsPath \ "key").format[String]
+    )(SparkApplication.NameKey.apply _, unlift(SparkApplication.NameKey.unapply))
+
+  implicit lazy val formatSecretInfo: Format[SparkApplication.SecretInfo] = (
+    (JsPath \ "name").format[String] and
+      (JsPath \ "path").format[String] and
+      (JsPath \ "secretType").format[String]
+    )(SparkApplication.SecretInfo.apply _, unlift(SparkApplication.SecretInfo.unapply))
 
   implicit lazy val formatSparkApplicationExecutorSpec: Format[SparkApplication.ExecutorSpec] = (
-    (JsPath \ "memory").formatWithDefault("512m") and
+    (JsPath \ "cores").formatMaybeEmptyString() and
+      (JsPath \ "coreLimit").formatMaybeEmptyString() and
+      (JsPath \ "memory").formatMaybeEmptyString() and
       (JsPath \ "memoryOverhead").formatMaybeEmptyString() and
+      (JsPath \ "image").formatMaybeEmptyString() and
+      (JsPath \ "configMaps").formatMaybeEmptyList[SparkApplication.NamePath] and
+      (JsPath \ "secrets").formatMaybeEmptyList[SparkApplication.SecretInfo] and
+      (JsPath \ "envVars").formatMaybeEmptyMap[String] and
+      (JsPath \ "envSecretKeyRefs").formatMaybeEmptyMap[SparkApplication.NameKey] and
       (JsPath \ "labels").formatMaybeEmptyMap[String] and
-      (JsPath \ "instances").formatWithDefault(1) and
-      (JsPath \ "cores").formatWithDefault("1") and
-      (JsPath \ "coreLimit").formatWithDefault("1000m")
+      (JsPath \ "annotations").formatMaybeEmptyMap[String] and
+      (JsPath \ "volumeMounts").formatMaybeEmptyList[Volume.Mount] and
+      (JsPath \ "affinity").formatNullable[Pod.Affinity] and
+      (JsPath \ "tolerations").formatMaybeEmptyList[Pod.Toleration] and
+      (JsPath \ "securityContext").formatNullable[PodSecurityContext] and
+      (JsPath \ "schedulerName").formatMaybeEmptyString() and
+      (JsPath \ "instances").formatNullable[Int] and
+      (JsPath \ "coreRequest").formatMaybeEmptyString() and
+      (JsPath \ "javaOptions").formatMaybeEmptyString()
     )(SparkApplication.ExecutorSpec.apply _, unlift(SparkApplication.ExecutorSpec.unapply))
 
-  implicit lazy val formatVirtualServiceSpec: Format[SparkApplication.Spec] = (
+  implicit lazy val formatSparkApplicationDriverSpec: Format[SparkApplication.DriverSpec] = (
+    (JsPath \ "cores").formatMaybeEmptyString() and
+      (JsPath \ "coreLimit").formatMaybeEmptyString() and
+      (JsPath \ "memory").formatMaybeEmptyString() and
+      (JsPath \ "memoryOverhead").formatMaybeEmptyString() and
+      (JsPath \ "image").formatMaybeEmptyString() and
+      (JsPath \ "configMaps").formatMaybeEmptyList[SparkApplication.NamePath] and
+      (JsPath \ "secrets").formatMaybeEmptyList[SparkApplication.SecretInfo] and
+      (JsPath \ "envVars").formatMaybeEmptyMap[String] and
+      (JsPath \ "envSecretKeyRefs").formatMaybeEmptyMap[SparkApplication.NameKey] and
+      (JsPath \ "labels").formatMaybeEmptyMap[String] and
+      (JsPath \ "annotations").formatMaybeEmptyMap[String] and
+      (JsPath \ "volumeMounts").formatMaybeEmptyList[Volume.Mount] and
+      (JsPath \ "affinity").formatNullable[Pod.Affinity] and
+      (JsPath \ "tolerations").formatMaybeEmptyList[Pod.Toleration] and
+      (JsPath \ "securityContext").formatNullable[PodSecurityContext] and
+      (JsPath \ "schedulerName").formatMaybeEmptyString() and
+      (JsPath \ "podName").formatMaybeEmptyString() and
+      (JsPath \ "serviceAccount").formatMaybeEmptyString() and
+      (JsPath \ "javaOptions").formatMaybeEmptyString()
+    )(SparkApplication.DriverSpec.apply _, unlift(SparkApplication.DriverSpec.unapply))
+
+  implicit lazy val formatPrometheusSpec: Format[SparkApplication.PrometheusSpec] = (
+    (JsPath \ "jmxExporterJar").format[String] and
+      (JsPath \ "port").format[Int] and
+      (JsPath \ "configFile").formatMaybeEmptyString() and
+      (JsPath \ "configuration").formatMaybeEmptyString()
+    )(SparkApplication.PrometheusSpec.apply _, unlift(SparkApplication.PrometheusSpec.unapply))
+
+  implicit lazy val formatMonitoringSpec: Format[SparkApplication.MonitoringSpec] = (
+    (JsPath \ "exposeDriverMetrics").format[Boolean] and
+      (JsPath \ "exposeExecutorMetrics").format[Boolean] and
+      (JsPath \ "metricsProperties").formatMaybeEmptyString() and
+      (JsPath \ "prometheus").formatNullable[SparkApplication.PrometheusSpec]
+    )(SparkApplication.MonitoringSpec.apply _, unlift(SparkApplication.MonitoringSpec.unapply))
+
+  implicit lazy val formatRestartPolicy: Format[SparkApplication.RestartPolicy] = (
+    (JsPath \ "type").formatNullableEnum(skuber.RestartPolicy) and
+      (JsPath \ "onSubmissionFailureRetries").formatNullable[Int] and
+      (JsPath \ "onFailureRetries").formatNullable[Int] and
+      (JsPath \ "onSubmissionFailureRetryInterval").formatNullable[Int] and
+      (JsPath \ "onFailureRetryInterval").formatNullable[Int]
+    )(SparkApplication.RestartPolicy.apply _, unlift(SparkApplication.RestartPolicy.unapply))
+
+  val formatSparkApplicationSpec1: OFormat[(SparkApplication.Type.Value, String, Option[SparkApplication.Mode.Value], String,
+    String, Option[Container.PullPolicy.Value], List[String], String, String, List[String], Map[String,String], Map[String,String],
+    List[String], List[String], List[Volume.Mount], Option[SparkApplication.DriverSpec], Option[SparkApplication.ExecutorSpec],
+    Option[SparkApplication.Deps], Option[SparkApplication.RestartPolicy], Map[String,String], Option[Int])] = (
+    (JsPath \ "type").formatEnum(SparkApplication.Type) and
+      (JsPath \ "sparkVersion").formatMaybeEmptyString() and
+      (JsPath \ "mode").formatNullableEnum(SparkApplication.Mode) and
+      (JsPath \ "image").formatMaybeEmptyString() and
+      (JsPath \ "initContainerImage").formatMaybeEmptyString() and
+      (JsPath \ "imagePullPolicy").formatNullableEnum(Container.PullPolicy) and
+      (JsPath \ "imagePullSecrets").formatMaybeEmptyList[String] and
+      (JsPath \ "mainClass").formatMaybeEmptyString() and
+      (JsPath \ "mainApplicationFile").formatMaybeEmptyString() and
+      (JsPath \ "arguments").formatMaybeEmptyList[String] and
+      (JsPath \ "sparkConf").formatMaybeEmptyMap[String] and
+      (JsPath \ "hadoopConf").formatMaybeEmptyMap[String] and
+      (JsPath \ "sparkConfigMap").formatMaybeEmptyList[String] and
+      (JsPath \ "hadoopConfigMap").formatMaybeEmptyList[String] and
+      (JsPath \ "volumes").formatMaybeEmptyList[Volume.Mount] and
+      (JsPath \ "driver").formatNullable[SparkApplication.DriverSpec] and
+      (JsPath \ "executor").formatNullable[SparkApplication.ExecutorSpec] and
       (JsPath \ "deps").formatNullable[SparkApplication.Deps] and
-        (JsPath \ "historyServer").formatMaybeEmptyString() and
-        (JsPath \ "driver").formatNullable[SparkApplication.DriverSpec] and
-        (JsPath \ "executor").formatNullable[SparkApplication.ExecutorSpec] and
-        (JsPath \ "image").formatMaybeEmptyString() and
-        (JsPath \ "mainApplicationFile").format[String] and
-        (JsPath \ "mainClass").formatMaybeEmptyString() and
-        (JsPath \ "arguments").formatMaybeEmptyString() and
-        (JsPath \ "mode").formatEnum(SparkApplication.Mode, Some(SparkApplication.Mode.cluster)) and
-        (JsPath \ "restartPolicy").formatEnum(RestartPolicy, Some(RestartPolicy.Always)) and
-        (JsPath \ "imagePullPolicy").formatEnum(Container.PullPolicy, Some(Container.PullPolicy.IfNotPresent)) and
-        (JsPath \ "type").formatEnum(SparkApplication.Type, Some(SparkApplication.Type.Java)) and
-        (JsPath \ "sleep").formatWithDefault(31536000) and
-        (JsPath \ "env").formatMaybeEmptyList[EnvVar] and
-        (JsPath \ "sparkConfigMap").formatMaybeEmptyString()
-    )(SparkApplication.Spec.apply _, unlift(SparkApplication.Spec.unapply))
+      (JsPath \ "restartPolicy").formatNullable[SparkApplication.RestartPolicy] and
+      (JsPath \ "nodeSelector").formatMaybeEmptyMap[String] and
+      (JsPath \ "failureRetries").formatNullable[Int]
+  ).tupled
+
+  val formatSparkApplicationSpec2: OFormat[(Option[Int], String, String, Option[SparkApplication.MonitoringSpec])] = (
+    (JsPath \ "retryInterval").formatNullable[Int] and
+      (JsPath \ "pythonVersion").formatMaybeEmptyString() and
+      (JsPath \ "memoryOverheadFactor").formatMaybeEmptyString() and
+      (JsPath \ "monitoring").formatNullable[SparkApplication.MonitoringSpec]
+  ).tupled
+
+  implicit val formatSparkApplicationSpec: Format[SparkApplication.Spec] = (
+    formatSparkApplicationSpec1 and formatSparkApplicationSpec2).apply(
+    {
+      case (one, two) => SparkApplication.Spec(one._1, one._2, one._3, one._4, one._5, one._6, one._7, one._8, one._9,
+        one._10, one._11, one._12, one._13, one._14, one._15, one._16, one._17, one._18, one._19, one._20, one._21, two._1,
+        two._2, two._3, two._4)
+    },
+    s => (
+      (
+        s.`type`,
+        s.sparkVersion,
+        s.mode,
+        s.image,
+        s.initContainerImage,
+        s.imagePullPolicy,
+        s.imagePullSecrets,
+        s.mainClass,
+        s.mainApplicationFile,
+        s.arguments,
+        s.sparkConf,
+        s.hadoopConf,
+        s.sparkConfigMap,
+        s.hadoopConfigMap,
+        s.volumes,
+        s.driver,
+        s.executor,
+        s.deps,
+        s.restartPolicy,
+        s.nodeSelector,
+        s.failureRetries
+      ),
+      (
+        s.retryInterval,
+        s.pythonVersion,
+        s.memoryOverheadFactor,
+        s.monitoring
+      )
+    )
+  )
 
   implicit lazy val formatSparkApplication: Format[SparkApplication] = (
     objFormat and

@@ -9,7 +9,8 @@ case class SparkApplication(
                              kind: String = "SparkApplication",
                              override val apiVersion: String = "sparkoperator.k8s.io/v1beta1",
                              metadata: ObjectMeta = ObjectMeta(),
-                             spec: Option[SparkApplication.Spec] = None
+                             spec: Option[SparkApplication.Spec] = None,
+                             status: Option[SparkApplication.Status] = None
                            ) extends ObjectResource
 
 object SparkApplication {
@@ -50,7 +51,7 @@ object SparkApplication {
                        )
 
   case class ExecutorSpec(
-                         cores: String = "",
+                         cores: Option[Float] = None,
                          coreLimit: String = "",
                          memory: String = "",
                          memoryOverhead: String = "",
@@ -72,7 +73,7 @@ object SparkApplication {
                          )
 
   case class DriverSpec(
-                       cores: String = "",
+                       cores: Option[Float] = None,
                        coreLimit: String = "",
                        memory: String = "",
                        memoryOverhead: String = "",
@@ -128,9 +129,9 @@ object SparkApplication {
                    arguments: List[String] = List(),
                    sparkConf: Map[String,String] = Map(),
                    hadoopConf: Map[String,String] = Map(),
-                   sparkConfigMap: List[String] = List(),
-                   hadoopConfigMap: List[String] = List(),
-                   volumes: List[Volume.Mount] = List(),
+                   sparkConfigMap: String = "",
+                   hadoopConfigMap: String = "",
+                   volumes: List[Volume] = List(),
                    driver: Option[SparkApplication.DriverSpec] = None,
                    executor: Option[SparkApplication.ExecutorSpec] = None,
                    deps: Option[SparkApplication.Deps] = None,
@@ -142,6 +143,43 @@ object SparkApplication {
                    memoryOverheadFactor: String = "",
                    monitoring: Option[SparkApplication.MonitoringSpec] = None
                  )
+
+  case class DriverInfo(
+                         webUIServiceName: String = "",
+                         webUIPort: Option[Int] = None,
+                         webUIAddress: String = "",
+                         webUIIngressName: String = "",
+                         webUIIngressAddress: String = "",
+                         podName: String = ""
+                       )
+
+//  object ApplicationStateType extends Enumeration {
+//    type ApplicationStateType = Value
+//    val SUBMITTED, RUNNING, COMPLETED, FAILED, SUBMISSION_FAILED, PENDING_RERUN, INVALIDATING, SUCCEEDING, FAILING, UNKNOWN = Value
+//  }
+
+  case class ApplicationState(
+//                             state: Option[SparkApplication.ApplicationStateType.Value] = None,
+                             state: String = "",
+                             errorMessage: String = ""
+                             )
+
+//  object ExecutorSpec extends Enumeration {
+//    type ExecutorSpec = Value
+//    val PENDING, RUNNING, COMPLETED, FAILED, UNKNOWN = Value
+//  }
+
+  case class Status(
+                     sparkApplicationId: String = "",
+                     submissionID: String = "",
+                     lastSubmissionAttemptTime: String = "",
+                     terminationTime: String = "",
+                     driverInfo: SparkApplication.DriverInfo,
+                     applicationState: Option[SparkApplication.ApplicationState] = None,
+                     executorState: Map[String,String] = Map(),
+                     executionAttempts: Option[Int] = None,
+                     submissionAttempts: Option[Int] = None
+                   )
 
   val specification = NonCoreResourceSpecification(
     apiGroup = "sparkoperator.k8s.io",

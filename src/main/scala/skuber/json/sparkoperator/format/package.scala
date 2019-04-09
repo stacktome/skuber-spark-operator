@@ -35,7 +35,7 @@ package object format {
     )(SparkApplication.SecretInfo.apply _, unlift(SparkApplication.SecretInfo.unapply))
 
   implicit lazy val formatSparkApplicationExecutorSpec: Format[SparkApplication.ExecutorSpec] = (
-    (JsPath \ "cores").formatMaybeEmptyString() and
+    (JsPath \ "cores").formatNullable[Float] and
       (JsPath \ "coreLimit").formatMaybeEmptyString() and
       (JsPath \ "memory").formatMaybeEmptyString() and
       (JsPath \ "memoryOverhead").formatMaybeEmptyString() and
@@ -57,7 +57,7 @@ package object format {
     )(SparkApplication.ExecutorSpec.apply _, unlift(SparkApplication.ExecutorSpec.unapply))
 
   implicit lazy val formatSparkApplicationDriverSpec: Format[SparkApplication.DriverSpec] = (
-    (JsPath \ "cores").formatMaybeEmptyString() and
+    (JsPath \ "cores").formatNullable[Float] and
       (JsPath \ "coreLimit").formatMaybeEmptyString() and
       (JsPath \ "memory").formatMaybeEmptyString() and
       (JsPath \ "memoryOverhead").formatMaybeEmptyString() and
@@ -102,7 +102,7 @@ package object format {
 
   val formatSparkApplicationSpec1: OFormat[(SparkApplication.Type.Value, String, Option[SparkApplication.Mode.Value], String,
     String, Option[Container.PullPolicy.Value], List[String], String, String, List[String], Map[String,String], Map[String,String],
-    List[String], List[String], List[Volume.Mount], Option[SparkApplication.DriverSpec], Option[SparkApplication.ExecutorSpec],
+    String, String, List[Volume], Option[SparkApplication.DriverSpec], Option[SparkApplication.ExecutorSpec],
     Option[SparkApplication.Deps], Option[SparkApplication.RestartPolicy], Map[String,String], Option[Int])] = (
     (JsPath \ "type").formatEnum(SparkApplication.Type) and
       (JsPath \ "sparkVersion").formatMaybeEmptyString() and
@@ -116,9 +116,9 @@ package object format {
       (JsPath \ "arguments").formatMaybeEmptyList[String] and
       (JsPath \ "sparkConf").formatMaybeEmptyMap[String] and
       (JsPath \ "hadoopConf").formatMaybeEmptyMap[String] and
-      (JsPath \ "sparkConfigMap").formatMaybeEmptyList[String] and
-      (JsPath \ "hadoopConfigMap").formatMaybeEmptyList[String] and
-      (JsPath \ "volumes").formatMaybeEmptyList[Volume.Mount] and
+      (JsPath \ "sparkConfigMap").formatMaybeEmptyString() and
+      (JsPath \ "hadoopConfigMap").formatMaybeEmptyString() and
+      (JsPath \ "volumes").formatMaybeEmptyList[Volume] and
       (JsPath \ "driver").formatNullable[SparkApplication.DriverSpec] and
       (JsPath \ "executor").formatNullable[SparkApplication.ExecutorSpec] and
       (JsPath \ "deps").formatNullable[SparkApplication.Deps] and
@@ -174,9 +174,36 @@ package object format {
     )
   )
 
+  implicit lazy val formatSparkApplicationDriverInfo: Format[SparkApplication.DriverInfo] = (
+    (JsPath \ "webUIServiceName").formatMaybeEmptyString() and
+      (JsPath \ "webUIPort").formatNullable[Int] and
+      (JsPath \ "webUIAddress").formatMaybeEmptyString() and
+      (JsPath \ "webUIIngressName").formatMaybeEmptyString() and
+      (JsPath \ "webUIIngressAddress").formatMaybeEmptyString() and
+      (JsPath \ "podName").formatMaybeEmptyString()
+    )(SparkApplication.DriverInfo.apply _, unlift(SparkApplication.DriverInfo.unapply))
+
+  implicit lazy val formatSparkApplicationApplicationState: Format[SparkApplication.ApplicationState] = (
+    (JsPath \ "state").formatMaybeEmptyString() and
+      (JsPath \ "errorMessage").formatMaybeEmptyString()
+    )(SparkApplication.ApplicationState.apply _, unlift(SparkApplication.ApplicationState.unapply))
+
+  implicit lazy val formatSparkApplicationStatus: Format[SparkApplication.Status] = (
+    (JsPath \ "sparkApplicationId").formatMaybeEmptyString() and
+      (JsPath \ "submissionID").formatMaybeEmptyString() and
+      (JsPath \ "lastSubmissionAttemptTime").formatMaybeEmptyString() and
+      (JsPath \ "terminationTime").formatMaybeEmptyString() and
+      (JsPath \ "driverInfo").format[SparkApplication.DriverInfo] and
+      (JsPath \ "applicationState").formatNullable[SparkApplication.ApplicationState] and
+      (JsPath \ "executorState").formatMaybeEmptyMap[String] and
+      (JsPath \ "executionAttempts").formatNullable[Int] and
+      (JsPath \ "submissionAttempts").formatNullable[Int]
+    )(SparkApplication.Status.apply _, unlift(SparkApplication.Status.unapply))
+
   implicit lazy val formatSparkApplication: Format[SparkApplication] = (
     objFormat and
-      (JsPath \ "spec").formatNullable[SparkApplication.Spec]
+      (JsPath \ "spec").formatNullable[SparkApplication.Spec] and
+      (JsPath \ "status").formatNullable[SparkApplication.Status]
     )(SparkApplication.apply _, unlift(SparkApplication.unapply))
 
   implicit val formatSparkApplicationList: Format[ListResource[SparkApplication]] = ListResourceFormat[SparkApplication]

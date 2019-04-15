@@ -1,10 +1,6 @@
 name := "skuber-spark-operator"
 
-version := "0.1-SNAPSHOT"
-
 organization := "com.stacktome"
-
-//scalaVersion := "2.11.12"
 
 crossScalaVersions := Seq("2.11.12", "2.12.6")
 
@@ -14,9 +10,25 @@ libraryDependencies ++= Seq(
 
 credentials ++= Seq(Credentials(Path.userHome / ".ivy2" / ".credentials"))
 
-buildInfoKeys := Seq[BuildInfoKey](name, version, scalaVersion, sbtVersion)
-buildInfoPackage := "stacktome"
+isSnapshot := true
 
-publishTo := Some("My Nexus" at "https://nexus.stacktome.com/repository/maven-snapshots/")
+enablePlugins(GitVersioning)
 
-enablePlugins(BuildInfoPlugin)
+git.baseVersion := "0.1"
+git.formattedShaVersion := git.gitHeadCommit.value map { sha =>
+  if(isSnapshot.value) {
+    git.baseVersion.value ++ "-" ++ sha.take(8) ++ "-SNAPSHOT"
+  }else {
+    git.baseVersion.value ++ "-" ++ sha.take(8)
+  }
+}
+
+updateOptions := updateOptions.value.withGigahorse(false)
+publishTo := {
+  val nexus = "https://nexus.stacktome.com"
+
+  if (isSnapshot.value)
+    Some("snapshots" at nexus + "/repository/maven-snapshots")
+  else
+    Some("releases"  at nexus + "/repository/maven-releases")
+}
